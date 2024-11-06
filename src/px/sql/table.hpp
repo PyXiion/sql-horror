@@ -29,14 +29,7 @@ namespace px {
       int i = 1;
       ([&](Column auto column) {
         ss << "    ";
-        ss << column.name.value << " " << column.type.to_string();
-
-        if (column.primary_key)
-          ss << " PRIMARY KEY";
-        if (column.unique)
-          ss << " UNIQUE";
-        if (column.not_null)
-          ss << " NOT NULL";
+        ss << column.to_string();
 
         if (i++ != sizeof...(columns_))
           ss << ',';

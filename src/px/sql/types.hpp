@@ -49,9 +49,10 @@ namespace px {
   constexpr inline auto SMALLINT = type_<short, "SMALLINT">{};
   constexpr inline auto INTEGER = type_<int, "INTEGER">{};
 
-  // Flags
   enum struct Constrains {
-    PRIMARY_KEY, NOT_NULL, UNIQUE
+    PRIMARY_KEY = 1 << 0,
+    NOT_NULL = 1 << 2,
+    UNIQUE = 1 << 3,
   };
 
   template<Constrains constraint>
@@ -65,9 +66,7 @@ namespace px {
   struct column_ {
     Type type;
     string_literal_<N> name;
-    bool primary_key = false;
-    bool not_null = false;
-    bool unique = false;
+    int constraints = 0;
 
     constexpr column_(Type &&type, string_literal_<N> &&literal)
         : type(std::forward<Type>(type)),
@@ -75,18 +74,21 @@ namespace px {
 
     template<Constrains constraint>
     constexpr column_ &operator-(const constraint_<constraint> &) {
-      switch (constraint) {
-        case Constrains::PRIMARY_KEY:
-          primary_key = true;
-          break;
-        case Constrains::NOT_NULL:
-          not_null = true;
-          break;
-        case Constrains::UNIQUE:
-          unique = true;
-          break;
-      }
+      constraints |= static_cast<int>(constraint);
       return *this;
+    }
+
+    [[nodiscard]] std::string to_string() const {
+      std::stringstream ss;
+      ss << name << " " << Type::name.value;
+      if (constraints & static_cast<int>(Constrains::PRIMARY_KEY))
+        ss << " PRIMARY KEY";
+      if (constraints & static_cast<int>(Constrains::NOT_NULL))
+        ss << " NOT NULL";
+      if (constraints & static_cast<int>(Constrains::UNIQUE))
+        ss << " UNIQUE";
+
+      return ss.str();
     }
   };
 
@@ -95,9 +97,7 @@ namespace px {
     { column.type } -> TypeConcept;
     { column.name } -> StringLiteral;
 
-    { column.primary_key } -> std::convertible_to<bool>;
-    { column.not_null } -> std::convertible_to<bool>;
-    { column.unique } -> std::convertible_to<bool>;
+    { column.constraints } -> std::convertible_to<int>;
   };
 
   template<std::size_t N, TypeConcept Type>
