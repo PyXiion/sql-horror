@@ -12,8 +12,17 @@
 #include "../templates/derived_from.hpp"
 
 namespace px {
+  // Basic SQL-type class. Just for concepts
   struct basic_type_ {};
 
+  template<class T>
+  concept TypeConcept = std::derived_from<std::decay_t<T>, basic_type_>;
+
+  /**
+   * Basic SQL-type class.
+   * \tparam ValueType The C++ type it represents.
+   * \tparam name_ Its name in SQL.
+   */
   template<class ValueType, string_literal_ name_>
   struct type_ : basic_type_ {
     inline static constexpr const char *name = name_.value;
@@ -24,10 +33,9 @@ namespace px {
     }
   };
 
-  template<class T>
-  concept TypeConcept = std::derived_from<std::decay_t<T>, basic_type_>;
-
-  // Text
+  /**
+   * SQL-type which is taking a size argument and formats into NAME(size)
+   */
   template<class ValueType, string_literal_ name_>
   struct sized_type_
       : type_<ValueType, name_> {
@@ -41,8 +49,13 @@ namespace px {
     }
   };
 
-  // Text
+  /**
+   * SQL text type with fixed size.
+   */
   using CHAR = sized_type_<std::string, "CHAR">;
+  /**
+   * SQL text type with limited size.
+   */
   using VARCHAR = sized_type_<std::string, "VARCHAR">;
 
   // Numeric
