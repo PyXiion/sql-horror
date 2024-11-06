@@ -12,14 +12,12 @@
 #include "../templates/derived_from.hpp"
 
 namespace px {
-  inline static constexpr unsigned long long TYPE_MAGIC_NUMBER_ID = 0xDEADBEEFABABABAB;
+  struct basic_type_ {};
 
   template<class ValueType, string_literal_ name_>
-  struct type_ {
+  struct type_ : basic_type_ {
     inline static constexpr const char *name = name_.value;
     using value_type = ValueType;
-
-    inline static constexpr unsigned long long TYPE_MAGIC_NUMBER_ID = px::TYPE_MAGIC_NUMBER_ID;
 
     [[nodiscard]] virtual std::string to_string() const {
       return fmt::format("{}", name_.value);
@@ -27,7 +25,7 @@ namespace px {
   };
 
   template<class T>
-  concept TypeConcept = std::decay_t<T>::TYPE_MAGIC_NUMBER_ID == px::TYPE_MAGIC_NUMBER_ID;
+  concept TypeConcept = std::derived_from<std::decay_t<T>, basic_type_>;
 
   // Text
   template<class ValueType, string_literal_ name_>
