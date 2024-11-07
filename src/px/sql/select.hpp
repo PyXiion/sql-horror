@@ -59,7 +59,7 @@ namespace px {
   };
 
   template<string_literal_ ...columns_>
-  struct select_helper_ {
+  struct select_fabric_ {
 
     inline auto operator%(TableConcept auto const &table) {
       using table_ = typename std::decay_t<decltype(table)>;
@@ -68,7 +68,7 @@ namespace px {
   };
 }
 
-#define SELECT px::select_helper_<
+#define SELECT px::select_fabric_<
 #define FROM >{} %
 
 #endif //PX_TEST_SRC_PX_SQL_SELECT_HPP
