@@ -88,6 +88,10 @@ namespace px {
 
     session_statement operator<<(const std::string &v);
 
+    auto execute(const auto &executable) requires requires { executable.execute(*this); } {
+      return executable.execute(*this);
+    }
+
   private:
     impl_ *impl;
   };

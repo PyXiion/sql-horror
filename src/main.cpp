@@ -3,33 +3,29 @@
 #include "px/sql/session.hpp"
 #include "px/sql/select.hpp"
 
+constexpr auto user_table =
+    TABLE "users",
+          "id" - px::INTEGER - px::NOT_NULL - px::PRIMARY_KEY,
+          "username" - px::CHAR(16) - px::NOT_NULL - px::UNIQUE,
+          "age" - px::SMALLINT - px::NOT_NULL,
+          "bio" - px::VARCHAR(128)
+    END_TABLE;
+
 int main() {
   px::session session("sqlite3:db=database.db");
 
-  auto user_table =
-      TABLE "users",
-            "id" - px::INTEGER - px::NOT_NULL - px::PRIMARY_KEY,
-            "username" - px::CHAR(16) - px::NOT_NULL - px::UNIQUE,
-            "age" - px::SMALLINT - px::NOT_NULL,
-            "bio" - px::VARCHAR(128)
-          CONNECT_TO session;
+  for (const auto &&[username]
+      : session.execute(SELECT "username" FROM user_table WHERE "id" < 5)) {
+    println "User @{}", username;
+  }
 
-  //  CREATE user_table;
-
-  println "User:";
+  auto statement = SELECT "id", "bio" FROM user_table WHERE "age" > 25;
   for (const auto &&[
-        username,
-        bio,
         id,
-        age] : SELECT "username", "bio", "id", "age" FROM user_table) {
-    println "User @{} ({}), age: {}, bio: {}", username, id, age, bio;
+        bio] : session.execute(statement)) {
+    println "User #{} : {}", id, bio;
   }
 
-  for (const auto &&[
-        _,
-        bio,
-        id
-    ] : SELECT "age", "bio", "id" FROM user_table) {
-    println "Id: {}, bio: {}", id, bio;
-  }
+
+  auto causes_error = SELECT "id", "bio" FROM user_table WHERE "agse" > 25;
 }

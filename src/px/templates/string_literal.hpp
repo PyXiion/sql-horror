@@ -17,6 +17,10 @@ namespace px {
       std::copy_n(str, N, value);
     }
 
+    inline operator std::string_view() const {
+      return {value, value + N - 1};
+    }
+
     char value[N]{};
     const std::size_t length = N;
   };
@@ -30,6 +34,16 @@ namespace px {
   consteval bool operator ==(StringLiteral auto const &l, StringLiteral auto const &r)  {
     if (l.length != r.length) return false;
     return std::equal(l.value, l.value + l.length, r.value);
+  }
+
+  consteval bool operator ==(const char *l, StringLiteral auto const &r)  {
+    if (strlen(l) != r.length) return false;
+    return std::equal(l, l + r.length, r.value);
+  }
+
+  consteval bool operator ==(StringLiteral auto const &l, const char *r)  {
+    if (strlen(r) != l.length) return false;
+    return std::equal(l.value, l.value + l.length, r);
   }
 
   constexpr bool operator +(StringLiteral auto l, StringLiteral auto r) {

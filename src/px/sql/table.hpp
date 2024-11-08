@@ -9,6 +9,7 @@
 #include "types.hpp"
 #include "../templates/string_literal.hpp"
 #include "session.hpp"
+#include "../templates/false.hpp"
 
 namespace px {
   class session;
@@ -19,8 +20,7 @@ namespace px {
     inline constexpr static auto name = table_name;
     inline constexpr static auto columns = std::make_tuple(columns_...);
     inline constexpr static auto npos = std::string::npos;
-
-    explicit table_(session &session_) : session(session_) {}
+  public:
 
     inline constexpr operator std::string() const {
       std::stringstream ss;
@@ -79,7 +79,27 @@ namespace px {
       return ss.str();
     }
 
-    session &session;
+    template<class T>
+    inline consteval static bool is_allowed_column_name_type() {
+      bool allowed = false;
+      ([&allowed](auto &allowed_value) {
+        using allowed_value_type = std::decay_t<decltype(allowed_value)>;
+        if constexpr (std::convertible_to<T, allowed_value_type>) {
+          allowed = true;
+        }
+      }(columns_.name), ...);
+      return allowed;
+    }
+
+    inline consteval static bool is_allowed_column_name(StringLiteral auto column_name) {
+      bool allowed = false;
+      ([&allowed, &column_name](auto &allowed_value) {
+        if (allowed_value == column_name) {
+          allowed = true;
+        }
+      }(columns_.name), ...);
+      return allowed;
+    }
   };
 
   template<class T>
@@ -103,11 +123,8 @@ namespace px {
   };
 }
 
-#define DECLARE_TABLE px::table_<
-#define END_TABLE >
-
-#define TABLE px::table_fabric_<px::table_<
-#define CONNECT_TO >>{} +
+#define TABLE px::table_<
+#define END_TABLE >{}
 #define CREATE px::create_t{} +
 
 #endif //PX_TEST_SRC_PX_SQL_TABLE_HPP
